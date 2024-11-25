@@ -1,19 +1,29 @@
-from flask import Flask
-from controllers.userController import users_bp  # Make sure the import is correct
+from flask import Flask, render_template, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-# Register the users blueprint
-app.register_blueprint(users_bp, url_prefix='/users')  # All user routes will be prefixed with /users
-
-# Define other routes
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def home():
+    return render_template('index.html')  # Create this HTML file for input/output.
 
-@app.route('/greet/<name>')
-def greet(name):
-    return f'Hello, {name}!'
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_query = request.form.get('query')
+    if not user_query:
+        return jsonify({"error": "Query cannot be empty"}), 400
+
+    # Call FastAPI backend
+    try:
+        response = requests.post(
+            "http://localhost:8000/api/chat",
+            json={"query": user_query},
+        )
+        response.raise_for_status()
+        data = response.json()
+        return jsonify(data)
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

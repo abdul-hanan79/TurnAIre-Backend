@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Chatbot</title>
+</head>
+<body>
+    <h1>Travel Chatbot</h1>
+    <form id="chat-form" method="POST">
+        <label for="query">Where do you want to go?</label>
+        <input type="text" id="query" name="query" required>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        const form = document.getElementById("chat-form");
+        const responseDiv = document.getElementById("response");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const query = document.getElementById("query").value;
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                responseDiv.textContent = `Error: ${data.error}`;
+            } else {
+                responseDiv.innerHTML = `
+                    <h2>Processed Query: ${data.processed_query}</h2>
+                    <h3>Travel Suggestions</h3>
+                    <p><b>Flights:</b> ${JSON.stringify(data.travel_data.flights)}</p>
+                    <p><b>Accommodations:</b> ${JSON.stringify(data.travel_data.accommodations)}</p>
+                    <p><b>Transport:</b> ${JSON.stringify(data.travel_data.transport)}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
